@@ -6,105 +6,109 @@
 </p>
 
 <p align="center">
-  Detecta dados pessoais no código de CitizenTechs, rastreia vazamentos e traduz o risco para o cidadão — frontend Angular
+  Finds personal data in the code of citizen-facing apps, traces leaks and translates the risk for citizens — Angular frontend
 </p>
+
+<p align="center"><strong>English</strong> · <a href="README.pt-BR.md">Português</a></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Angular-22-0b4f8a" alt="Angular 22">
-  <img src="https://img.shields.io/badge/i18n-pt--BR-0b4f8a" alt="Idioma: pt-BR">
+  <img src="https://img.shields.io/badge/UI-pt--BR-0b4f8a" alt="UI language: pt-BR">
   <img src="https://img.shields.io/badge/auth-OIDC%20%2B%20PKCE-0b4f8a" alt="OIDC + PKCE">
   <img src="https://img.shields.io/badge/GS%202026.2-Cybersecurity-5a6474" alt="GS 2026.2 Cybersecurity">
 </p>
 
-## Ficha da CitizenTech
+## CitizenTech summary
 
 | | |
 |---|---|
-| **Nome** | Sentinela Cidadã |
-| **Cidadão beneficiado** | Moradores que usam aplicativos públicos e comunitários (zeladoria, saúde, cadastro) e entregam CPF, Cartão SUS e dados de saúde a eles |
-| **Problema, em uma frase** | CitizenTechs coletam dados sensíveis e, sem perceber, os deixam escapar em logs, respostas HTTP, arquivos e APIs de terceiros |
-| **Como funciona** | Cada varredura do código roda o estágio **pii**: regras próprias de Semgrep mapeiam onde o dado pessoal está e um taint analysis segue esse dado até a saída; quando ele vaza, o estágio falha e a publicação é bloqueada. A IA traduz cada vazamento em um alerta claro para o cidadão, e o painel resume tudo no índice **Risco Cidadão** |
-| **O que cada parte faz** | `sentinela-api` (Java/Spring, Keycloak, PostgreSQL, scanner isolado): varredura, taint analysis, gate, tradução via Claude e cálculo do índice · `sentinela-web` (este repositório): painel executivo, repositórios, varreduras, achados com o rastro do vazamento, alertas e catálogo de regras |
-| **Repositórios** | [sentinela-web](https://github.com/leonardorscarpitta/sentinela-web) · [sentinela-api](https://github.com/leonardorscarpitta/sentinela-api) |
-| **Indicador de impacto** | Risco Cidadão (0–100) por varredura; vazamentos bloqueados antes da publicação |
-| **ODS conectados** | 9 (infraestrutura resiliente), 10 (redução das desigualdades), 11 (cidades e comunidades sustentáveis), 16.10 (proteção de liberdades fundamentais / dados) |
+| **Name** | Sentinela Cidadã |
+| **Who benefits** | Residents who use public and community apps (neighbourhood maintenance, health, registration) and hand them their CPF, Cartão SUS (national health card) and health data |
+| **Problem, in one sentence** | CitizenTechs collect sensitive data and, without noticing, let it escape through logs, HTTP responses, files and third-party APIs |
+| **How it works** | Every code scan runs the **pii** stage: Semgrep rules map where personal data lives and a taint analysis follows it to its outputs; when it leaks, the stage fails and the release is blocked. AI turns each leak into a plain-language alert for citizens, and the dashboard sums it all up in the **Risco Cidadão** (citizen risk) index |
+| **What each part does** | `sentinela-api` (Java/Spring, Keycloak, PostgreSQL, isolated scanner): scanning, taint analysis, gate, Claude translation and the index · `sentinela-web` (this repository): executive dashboard, repositories, scans, findings with the leak trace, alerts and the rules catalog |
+| **Repositories** | [sentinela-web](https://github.com/leonardorscarpitta/sentinela-web) · [sentinela-api](https://github.com/leonardorscarpitta/sentinela-api) · [sentinela-infra](https://github.com/leonardorscarpitta/sentinela-infra) |
+| **Impact indicator** | Risco Cidadão (0–100) per scan; leaks blocked before release |
+| **UN SDGs** | 9 (resilient infrastructure), 10 (reduced inequalities), 11 (sustainable cities and communities), 16.10 (protection of fundamental freedoms / data) |
 
-## Entregas da disciplina (Cybersecurity)
+The UI is in Brazilian Portuguese, the language of its users.
 
-| Missão | Onde está no app |
+## Course deliverables (Cybersecurity)
+
+| Mission | Where it is in the app |
 |---|---|
-| 01 · Mapeamento de PII | **Regras PII**: catálogo das regras do estágio `pii` (CPF, CNS, CID-10, saúde, senhas, contato, cartão), com teste ao vivo no navegador · **Achados › Privacidade**: cada dado mapeado com arquivo e linha |
-| 02 · Taint Analysis | **Achados › detalhe**: rastro *origem → propagação → destino* (arquivo:linha) e o tipo de saída · **Varreduras › detalhe**: estágio `pii` que falha e bloqueia o pipeline |
-| 03 · Tradução via IA | **Achados › detalhe › Gerar alerta para o cidadão**: o que acontece, quem é afetado, o que fazer e a correção técnica (Claude, sem enviar código nem dados) |
-| Dashboard Executivo | **Painel**: índice Risco Cidadão, veredito do gate, evolução por varredura, exposição por tipo de dado, a fórmula com os pesos vindos da API e KPIs gerais de segurança |
-| Segurança do próprio protótipo | Login OIDC com PKCE, token só na aba, isolamento por organização, evidências sem valores, entradas validadas (ver abaixo) |
+| 01 · PII mapping | **Regras PII**: catalog of the `pii` stage rules (CPF, CNS, CID-10, health, passwords, contact, card) with a live in-browser tester · **Achados › Privacidade**: each mapped data point with file and line |
+| 02 · Taint analysis | **Achados › detail**: *source → propagation → sink* trace (file:line) and the kind of output · **Varreduras › detail**: the `pii` stage failing and blocking the pipeline |
+| 03 · AI translation | **Achados › detail › Gerar alerta para o cidadão**: what happens, who is affected, what to do and the technical fix (Claude, no code or data sent) |
+| Executive dashboard | **Painel**: Risco Cidadão index, gate verdict, trend per scan, exposure by data type, the formula with the weights returned by the API, and general security KPIs |
+| Security of the prototype itself | OIDC login with PKCE, token kept in the tab, organization isolation, evidence without values, validated input (see below) |
 
-## Arquitetura
+## Architecture
 
 ```
-navegador ──/api/v1──> ng serve (proxy) ──> sentinela-api :8080 ──> PostgreSQL
-    │                                              │
-    └──OIDC (Code + PKCE)──> Keycloak :9443        └──> scanner (Semgrep, Gitleaks, Trivy…) — clona com chave de deploy
+browser ──/api/v1──> ng serve (proxy) ──> api-gateway ──> sentinela-api ──> PostgreSQL
+   │                                                         │
+   └──OIDC (Code + PKCE)──> Keycloak :9443                   └──> scanner (Semgrep, Gitleaks, Trivy…) — clones with a deploy key
 ```
 
-- Angular 22 standalone, signals e zoneless; leituras com `httpResource`, escritas com `HttpClient`.
-- O navegador fala com a API pelo mesmo endereço do app (`/api/v1`): em desenvolvimento o `ng serve` encaminha para a API (`proxy.conf.mjs`), em produção o gateway faz o mesmo. Não há CORS nem token enviado a outra origem.
-- `public/config.json` é lido na inicialização (troca de ambiente sem rebuild): URL da API, Keycloak e modo de autenticação.
+- Angular 22, standalone, signals and zoneless; reads with `httpResource`, writes with `HttpClient`.
+- The browser calls the API on the app's own origin (`/api/v1`): in development `ng serve` proxies it (`proxy.conf.mjs`); in production a gateway does the same. No CORS and no token sent to another origin.
+- `public/config.json` is loaded at startup (change environments without rebuilding): API URL, Keycloak and auth mode.
 
 ```
 src/app/
 ├── core/
-│   ├── config.ts          # config.json (API, Keycloak, modo de autenticação)
-│   ├── auth.ts            # OIDC Authorization Code + PKCE, sessão na aba, login silencioso
-│   ├── org.ts             # organização ativa, guards de sessão e de organização
-│   ├── http.ts            # interceptor (token, X-Artemis-Organization, 401/404) e mensagens dos ProblemDetails
-│   ├── sentinela-api.ts   # todas as chamadas à API
-│   ├── models.ts          # tipos do contrato e rótulos em pt-BR
-│   ├── risk.ts            # textos dos níveis e apresentação dos pesos que a API devolve
-│   ├── pii-rules.ts       # catálogo das regras do estágio pii + regex do teste local
-│   └── pii-engine.ts      # teste local: validadores (CPF, CNS, Luhn) e máscara
-├── shared/                # medidor, tendência, barras, fluxo, alerta, badges, erro
-└── pages/                 # painel, repositórios, varreduras, achados, regras, entrar, organizações
+│   ├── config.ts          # config.json (API, Keycloak, auth mode)
+│   ├── auth.ts            # OIDC Authorization Code + PKCE, per-tab session, silent sign-in
+│   ├── org.ts             # active organization, session and organization guards
+│   ├── http.ts            # interceptor (token, X-Sentinela-Organization, 401/404) and ProblemDetail messages
+│   ├── sentinela-api.ts   # every API call
+│   ├── models.ts          # contract types and pt-BR labels
+│   ├── risk.ts            # level texts and display of the weights returned by the API
+│   ├── pii-rules.ts       # catalog of the pii stage rules + regexes for the local tester
+│   └── pii-engine.ts      # local tester: validators (CPF, CNS, Luhn) and masking
+├── shared/                # gauge, trend, bars, flow card, alert card, badges, error
+└── pages/                 # dashboard, repositories, scans, findings, rules, sign-in, organizations
 ```
 
-## Páginas
+## Pages
 
-| Página | API |
+| Page | API |
 |---|---|
-| **Painel** | `GET /dashboard/citizen-risk?repository=` (medidor, veredito, KPIs, tendência, exposição por categoria, fórmula com `weights`) · `GET /dashboard/summary` · `GET /findings?kind=privacy&status=open` (vazamentos que bloqueiam) |
-| **Repositórios** | `GET/POST /repositories` (só URL SSH) · `GET /repositories/{name}` · `GET /repositories/{name}/access` (chave pública de deploy) · `POST …/access/checks` (testar acesso, com atualização automática) · `POST …/access/key` (nova chave) · `POST …/scans` |
-| **Varreduras** | `GET /pipeline-runs?repository=` (atualiza enquanto há execução) · `GET /pipeline-runs/{n}` (estágios, incluindo `pii`, status, quem bloqueou, logs) · `POST …/rerun` · `POST …/cancel` |
-| **Achados** | `GET /findings?q&kind&severity&status&repository` (filtros na URL) · `GET /findings/{id}` (rastro do vazamento, histórico) · `POST /findings/{id}/status` (aceitar risco exige justificativa e validade) · `GET/POST /findings/{id}/citizen-alert` |
-| **Regras PII** | Sem API: catálogo das regras de `sentinela-api/scanner/rules/pii/` e teste local (funciona sem login) |
+| **Painel** (dashboard) | `GET /dashboard/citizen-risk?repository=` (gauge, verdict, KPIs, trend, exposure by category, formula with `weights`) · `GET /dashboard/summary` · `GET /findings?kind=privacy&status=open` (blocking leaks) |
+| **Repositórios** | `GET/POST /repositories` (SSH URLs only) · `GET /repositories/{name}` · `GET /repositories/{name}/access` (deploy public key) · `POST …/access/checks` (test access, auto-refresh) · `POST …/access/key` (new key) · `POST …/scans` |
+| **Varreduras** (scans) | `GET /pipeline-runs?repository=` (refreshes while runs are active) · `GET /pipeline-runs/{n}` (stages incl. `pii`, status, which stage blocked, logs) · `POST …/rerun` · `POST …/cancel` |
+| **Achados** (findings) | `GET /findings?q&kind&severity&status&repository` (filters in the URL) · `GET /findings/{id}` (leak trace, history) · `POST /findings/{id}/status` (accepting a risk needs a justification and an expiry) · `GET/POST /findings/{id}/citizen-alert` |
+| **Regras PII** | No API: catalog of the rules in `sentinela-api/scanner/rules/pii/` and a local tester (works without signing in) |
 
-Erros da API (RFC 7807) viram mensagens em pt-BR, com o código técnico ao lado. Na geração do alerta ao cidadão: `403 feature-not-enabled`, `503 ai-unavailable`, `503 ai-busy`, `429 ai-limit`, `502 ai-failed`, `400 not-privacy-finding`.
+API errors (RFC 7807) become pt-BR messages with the technical code beside them. For citizen alerts: `403 feature-not-enabled`, `503 ai-unavailable`, `503 ai-busy`, `429 ai-limit`, `502 ai-failed`, `400 not-privacy-finding`.
 
-## Autenticação
+## Authentication
 
-- **Keycloak** (realm `artemisappsec`, cliente público `artemisappsec-web`): Authorization Code + **PKCE S256**, `state` e `nonce` conferidos, retorno em `/auth/callback`. Implementado com WebCrypto, sem biblioteca.
-- **Token só na aba**: access token (15 min) e id token em `sessionStorage`; nada em `localStorage` nem em cookie. O realm não emite refresh token.
-- **Token vencido ou 401**: o app volta ao Keycloak com `prompt=none`; com a sessão SSO ativa o retorno é imediato e sem interação, senão aparece a tela *Entrar*. Sair apaga os tokens locais antes de encerrar a sessão no Keycloak.
-- **Organizações**: `GET /me/organizations`; a escolhida vai no cabeçalho `X-Artemis-Organization` de toda chamada da organização. `404 organization-not-found` leva de volta à escolha. Botões aparecem conforme as permissões do papel (`triage`, `pipelines`, `integrations`), e a API confere de novo.
-- **Modo de desenvolvimento** (`AUTH_ENABLED=false` na API): com `"mode": "auto"` o app detecta (o `GET /me` sem token só responde 200 nesse modo), não envia token e usa a organização `devOrganization` do `config.json` (padrão `acme`). `"mode"` também aceita `"oidc"` ou `"none"` fixos.
+- **Keycloak** (realm `sentinela`, public client `sentinela-web`): Authorization Code + **PKCE S256**, `state` and `nonce` checked, return to `/auth/callback`. Written with WebCrypto, no library.
+- **Token kept in the tab**: access token (15 min) and id token in `sessionStorage`; nothing in `localStorage` or cookies. The realm issues no refresh token.
+- **Expired token or 401**: the app goes back to Keycloak with `prompt=none`; with an active SSO session it returns at once without interaction, otherwise the *Entrar* (sign-in) page appears. Signing out clears local tokens before ending the Keycloak session.
+- **Organizations**: `GET /me/organizations`; the chosen one goes in the `X-Sentinela-Organization` header of every organization call. `404 organization-not-found` sends you back to the choice. Buttons follow the role's permissions (`triage`, `pipelines`, `integrations`), and the API checks again.
+- **Development mode** (`AUTH_ENABLED=false` in the API): with `"mode": "auto"` the app detects it (`GET /me` without a token only answers 200 in that mode), sends no token and uses `devOrganization` from `config.json` (default `acme`). `"mode"` also accepts fixed `"oidc"` or `"none"`.
 
-## Rodando
+## Running
 
-Requer apenas Docker e a sentinela-api rodando: o app entra na rede `sentinela-web-gateway`, criada pelo `docker compose` do backend, e fala só com o `api-gateway` dela (banco, Keycloak e a porta de debug da API ficam fora de alcance).
+Everything runs locally in Docker; every port is bound to `127.0.0.1`, so nothing is reachable from the network. The app joins the `sentinela-web-gateway` network created by the backend's `docker compose` and talks only to its `api-gateway` (the database, Keycloak and the API debug port are out of reach).
 
-1. Suba o backend conforme o README dele (`cp .env.example .env`, preencha os segredos e `docker compose up -d`). O Keycloak do backend já espera este app em `http://localhost:4200` (`ARTEMISAPPSEC_WEB_ORIGIN`, redirect `/auth/callback`).
-2. Suba o app:
+1. Start the backend as its README explains (`cp .env.example .env`, fill in the secrets, `docker compose up -d`). Its Keycloak already expects this app at `http://localhost:4200` (`SENTINELA_WEB_ORIGIN`, redirect `/auth/callback`).
+2. Start the app:
 
    ```bash
-   docker compose up -d --build     # ng serve em modo debug (source maps, recarga ao editar src/)
+   docker compose up -d --build     # ng serve in debug mode (source maps, reload on src/ changes)
    ```
 
-   O proxy do `ng serve` encaminha `/api` para `API_PROXY_TARGET` (padrão `http://api-gateway:8080`).
+   The `ng serve` proxy forwards `/api` to `API_PROXY_TARGET` (default `http://api-gateway:8080`).
 
-   Abra o app em **<http://localhost:4200>** (não em `127.0.0.1`): é a origem liberada no `CORS_ALLOWED_ORIGINS` e no Keycloak do backend; com outra origem a API recusa os `POST` (`403 Invalid CORS request`).
+   Open the app at **<http://localhost:4200>** (not `127.0.0.1`): that is the origin allowed by `CORS_ALLOWED_ORIGINS` and by the backend's Keycloak; from another origin the API refuses `POST`s (`403 Invalid CORS request`).
 
-3. Login: na primeira vez, abra <https://auth.artemisappsec.localhost:9443> e aceite o certificado local (ou confie na CA do Caddy, como explica o README do backend). Usuários de teste: `./keycloak/create-dev-users.sh` no backend. Para testar sem login, use `AUTH_ENABLED=false` no `.env` do backend.
+3. Sign-in: the first time, open <https://auth.sentinela.localhost:9443> and accept the local certificate (or trust Caddy's CA, as the backend README explains). Test users: `./keycloak/create-dev-users.sh` in the backend. To test without signing in, set `AUTH_ENABLED=false` in the backend's `.env`.
 
-Build de produção:
+Production build:
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app node:24-alpine sh -c "npm ci && npx ng build"
@@ -112,24 +116,24 @@ docker run --rm -v "$PWD":/app -w /app node:24-alpine sh -c "npm ci && npx ng bu
 
 ## Risco Cidadão
 
-Calculado pela API; o painel mostra a fórmula com os pesos que ela devolve.
+Computed by the API; the dashboard shows the formula with the weights it returns.
 
 ```
-vazamento = severidade × tipo de dado × exposição
-latente   = severidade × tipo de dado × fator latente   (dado mapeado que não vaza)
-índice    = round(100 × (1 − e^(−Σ/saturação)))         crítico ≥ 75 · alto ≥ 50 · moderado ≥ 25
+leak    = severity × data type × exposure
+latent  = severity × data type × latent factor     (mapped data that doesn't leak)
+index   = round(100 × (1 − e^(−Σ/saturation)))     critical ≥ 75 · high ≥ 50 · moderate ≥ 25
 ```
 
-Só achados abertos ou em análise contam. Publicação **bloqueada** quando há qualquer vazamento aberto.
+Only open or triaged findings count. The release is **blocked** while any leak is open.
 
-## Segurança no frontend
+## Frontend security
 
-- Nenhum `innerHTML`: todo conteúdo passa pela interpolação do Angular; tipagem estrita (`strict` + templates estritos).
-- Token apenas em memória/`sessionStorage`, enviado só para a própria API (origem e prefixo conferidos antes de anexar o cabeçalho); `returnUrl` aceita só caminhos internos (sem redirecionamento aberto).
-- Evidência sem valor: achados de privacidade mostram só tipo de dado, regra e arquivo:linha; o teste local de regras mascara o que encontra (só os 2 últimos caracteres ficam visíveis) e não envia nada.
-- Entradas validadas antes de chegar à API: URL só SSH e branch com o mesmo padrão do backend, filtros da URL só com valores conhecidos, regex vazia/inválida rejeitada, observação ≤ 1000 caracteres, aceitação de risco com justificativa e validade de até 1 ano.
-- Nenhum segredo no repositório: `config.json` tem só endereços públicos e o id do cliente público.
+- No `innerHTML`: all content goes through Angular interpolation; strict typing (`strict` + strict templates).
+- Token only in memory/`sessionStorage`, sent only to the app's own API (origin and prefix checked before adding the header); `returnUrl` accepts internal paths only (no open redirect).
+- Evidence without values: privacy findings show only the data type, rule and file:line; the local rule tester masks what it finds (only the last 2 characters stay visible) and sends nothing.
+- Input validated before it reaches the API: SSH-only URLs and branch names with the backend's pattern, URL filters limited to known values, empty/invalid regexes rejected, notes ≤ 1000 characters, risk acceptance with a justification and an expiry of at most 1 year.
+- No secrets in the repository: `config.json` holds only public addresses and the public client id.
 
-## Uso de IA
+## AI usage
 
-Registro dos prompts em [prompts.md](prompts.md).
+Prompts are recorded in [prompts.md](prompts.md).

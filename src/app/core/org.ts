@@ -17,7 +17,7 @@ function stored(): string | null {
   }
 }
 
-/** Organização ativa: o slug vai no cabeçalho X-Artemis-Organization das chamadas da organização. */
+/** Organização ativa: o slug vai no cabeçalho X-Sentinela-Organization das chamadas da organização. */
 @Injectable({ providedIn: 'root' })
 export class OrgContext {
   private readonly http = inject(HttpClient);

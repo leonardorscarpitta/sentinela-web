@@ -131,7 +131,3 @@ Só achados abertos ou em análise contam. Publicação **bloqueada** quando há
 - Evidência sem valor: achados de privacidade mostram só tipo de dado, regra e arquivo:linha; o teste local de regras mascara o que encontra (só os 2 últimos caracteres ficam visíveis) e não envia nada.
 - Entradas validadas antes de chegar à API: URL só SSH e branch com o mesmo padrão do backend, filtros da URL só com valores conhecidos, regex vazia/inválida rejeitada, observação ≤ 1000 caracteres, aceitação de risco com justificativa e validade de até 1 ano.
 - Nenhum segredo no repositório: `config.json` tem só endereços públicos e o id do cliente público.
-
-## Uso de IA
-
-Registro dos prompts em [prompts.md](prompts.md).

@@ -27,7 +27,7 @@
 | **Problem, in one sentence** | CitizenTechs collect sensitive data and, without noticing, let it escape through logs, HTTP responses, files and third-party APIs |
 | **How it works** | Every code scan runs the **pii** stage: Semgrep rules map where personal data lives and a taint analysis follows it to its outputs; when it leaks, the stage fails and the release is blocked. AI turns each leak into a plain-language alert for citizens, and the dashboard sums it all up in the **Risco Cidadão** (citizen risk) index |
 | **What each part does** | `sentinela-api` (Java/Spring, Keycloak, PostgreSQL, isolated scanner): scanning, taint analysis, gate, Claude translation and the index · `sentinela-web` (this repository): executive dashboard, repositories, scans, findings with the leak trace, alerts and the rules catalog |
-| **Repositories** | [sentinela-web](https://github.com/leonardorscarpitta/sentinela-web) · [sentinela-api](https://github.com/leonardorscarpitta/sentinela-api) · [sentinela-infra](https://github.com/leonardorscarpitta/sentinela-infra) |
+| **Repositories** | [sentinela-web](https://github.com/leonardorscarpitta/sentinela-web) · [sentinela-api](https://github.com/leonardorscarpitta/sentinela-api) |
 | **Impact indicator** | Risco Cidadão (0–100) per scan; leaks blocked before release |
 | **UN SDGs** | 9 (resilient infrastructure), 10 (reduced inequalities), 11 (sustainable cities and communities), 16.10 (protection of fundamental freedoms / data) |
 
@@ -133,7 +133,3 @@ Only open or triaged findings count. The release is **blocked** while any leak i
 - Evidence without values: privacy findings show only the data type, rule and file:line; the local rule tester masks what it finds (only the last 2 characters stay visible) and sends nothing.
 - Input validated before it reaches the API: SSH-only URLs and branch names with the backend's pattern, URL filters limited to known values, empty/invalid regexes rejected, notes ≤ 1000 characters, risk acceptance with a justification and an expiry of at most 1 year.
 - No secrets in the repository: `config.json` holds only public addresses and the public client id.
-
-## AI usage
-
-Prompts are recorded in [prompts.md](prompts.md).

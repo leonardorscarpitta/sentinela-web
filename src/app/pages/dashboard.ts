@@ -57,6 +57,8 @@ export class DashboardPage {
     this.openPrivacy.hasValue() ? this.openPrivacy.value().filter((f) => f.privacy?.type === 'flow').slice(0, 3) : [],
   );
 
+  protected readonly flowsLoaded = computed(() => this.openPrivacy.hasValue());
+
   protected readonly weights = computed(() => (this.risk.hasValue() ? weightTables(this.risk.value().weights) : null));
 
   protected readonly byKind = computed(() =>

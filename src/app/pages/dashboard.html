@@ -107,7 +107,9 @@
       @for (f of topFlows(); track f.id) {
         <app-flow-card [finding]="f" [link]="true" />
       } @empty {
-        <p class="empty card">Nenhum vazamento aberto.</p>
+        @if (flowsLoaded()) {
+          <p class="empty card">Nenhum vazamento aberto.</p>
+        }
       }
     </div>
   </div>

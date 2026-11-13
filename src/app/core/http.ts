@@ -117,6 +117,7 @@ export function problemMessage(error: unknown): string {
   const p = body(error);
   if (p?.code && BY_CODE[p.code]) return BY_CODE[p.code];
   if (status === 0) return 'Não foi possível falar com a sentinela-api. Verifique se ela está no ar.';
+  if (status >= 200 && status < 300) return 'A resposta não veio da sentinela-api (confira o API_PROXY_TARGET do proxy).';
   if (status === 400 && p?.errors) {
     return `Dados inválidos: ${Object.entries(p.errors)
       .map(([k, v]) => `${k} ${v}`)

@@ -114,7 +114,9 @@ export class Auth {
     }
     try {
       const res = await fetch(`${config().apiUrl}/me`, { headers: { Accept: 'application/json' } });
-      this.mode.set(res.ok ? 'none' : 'oidc');
+      // Exige o corpo do /me: qualquer outro servidor respondendo 200 no lugar da API não desliga o login.
+      const me = res.ok ? ((await res.json().catch(() => null)) as { username?: unknown } | null) : null;
+      this.mode.set(typeof me?.username === 'string' ? 'none' : 'oidc');
     } catch {
       this.mode.set('oidc');
     }

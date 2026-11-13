@@ -1,6 +1,6 @@
 // Proxy do ng serve: /api → sentinela-api. Mesmo origin no navegador, então não há CORS nem token em outra origem.
-// API_PROXY_TARGET muda o destino (padrão: a API publicada na máquina host, API_PORT=18080 da sentinela-api).
-const target = process.env.API_PROXY_TARGET || 'http://host.docker.internal:18080';
+// API_PROXY_TARGET muda o destino (padrão: o api-gateway da sentinela-api na rede sentinela-web-gateway).
+const target = process.env.API_PROXY_TARGET || 'http://api-gateway:8080';
 
 export default {
   '/api': {

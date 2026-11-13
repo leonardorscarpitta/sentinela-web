@@ -5,10 +5,17 @@ services:
     ports:
       - "127.0.0.1:4200:4200"
     environment:
-      # Para onde o ng serve encaminha /api (a sentinela-api). Veja o README para rodar junto do backend.
-      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:18080}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      # Para onde o ng serve encaminha /api. Padrão: o api-gateway da sentinela-api, na rede compartilhada abaixo.
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://api-gateway:8080}
+    networks:
+      - gateway
     volumes:
       - ./src:/app/src
       - ./public:/app/public
+
+networks:
+  # Criada pelo docker compose da sentinela-api: suba o backend primeiro.
+  # Nela só existe o api-gateway (proxy da API); banco, Keycloak e a porta de debug ficam inacessíveis.
+  gateway:
+    name: sentinela-web-gateway
+    external: true

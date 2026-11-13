@@ -6,7 +6,7 @@ import { config } from './config';
 import { Auth } from './auth';
 import { OrgContext } from './org';
 
-export const ORG_HEADER = 'X-Artemis-Organization';
+export const ORG_HEADER = 'X-Sentinela-Organization';
 
 /** Rotas da API que não pertencem a uma organização (não levam o cabeçalho). */
 const UNSCOPED = /^\/(me|organizations|admin|limits|pipeline\/stages)(\/|$|\?)/;

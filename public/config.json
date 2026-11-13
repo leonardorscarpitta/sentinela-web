@@ -2,8 +2,8 @@
   "apiUrl": "/api/v1",
   "auth": {
     "mode": "auto",
-    "authority": "https://auth.artemisappsec.localhost:9443/realms/artemisappsec",
-    "clientId": "artemisappsec-web",
+    "authority": "https://auth.sentinela.localhost:9443/realms/sentinela",
+    "clientId": "sentinela-web",
     "scope": "openid profile email"
   },
   "devOrganization": "acme"

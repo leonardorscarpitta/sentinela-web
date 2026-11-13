@@ -5,17 +5,48 @@
       <img src="logo.svg" alt="" width="32" height="32" />
       <span>Sentinela <strong>Cidadã</strong></span>
     </a>
-    <nav aria-label="Principal">
-      <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }"><app-icon name="home" /> Painel</a>
-      <a routerLink="/varreduras" routerLinkActive="on"><app-icon name="list" /> Varreduras</a>
-      <a routerLink="/regras" routerLinkActive="on"><app-icon name="rules" /> Regras PII</a>
-    </nav>
-    <button class="btn btn-ghost btn-sm theme" (click)="toggleTheme()"
-      [attr.aria-label]="theme() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
-      <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
-    </button>
+    @if (org.current()) {
+      <nav aria-label="Principal">
+        <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }"><app-icon name="home" /> Painel</a>
+        <a routerLink="/repositorios" routerLinkActive="on"><app-icon name="repo" /> Repositórios</a>
+        <a routerLink="/varreduras" routerLinkActive="on"><app-icon name="list" /> Varreduras</a>
+        <a routerLink="/achados" routerLinkActive="on"><app-icon name="bug" /> Achados</a>
+        <a routerLink="/regras" routerLinkActive="on"><app-icon name="rules" /> Regras PII</a>
+      </nav>
+    } @else {
+      <nav aria-label="Principal">
+        <a routerLink="/regras" routerLinkActive="on"><app-icon name="rules" /> Regras PII</a>
+      </nav>
+    }
+    <div class="tools">
+      @if (orgs().length > 1) {
+        <label class="org">
+          <span class="sr-only">Organização</span>
+          <select (change)="switchOrg($event)">
+            @for (o of orgs(); track o.slug) {
+              <option [value]="o.slug" [selected]="o.slug === org.slug()">{{ o.name }}</option>
+            }
+          </select>
+        </label>
+      } @else if (org.current(); as o) {
+        <span class="org-name" [title]="'Organização: ' + o.name">{{ o.name }}</span>
+      }
+      @if (auth.user(); as u) {
+        @if (auth.mode() === 'oidc') {
+          <button class="btn btn-ghost btn-sm" (click)="logout()" [attr.aria-label]="'Sair (' + u.name + ')'" [title]="u.name">
+            <app-icon name="logout" /> <span class="hide-sm">Sair</span>
+          </button>
+        }
+      }
+      <button class="btn btn-ghost btn-sm" (click)="toggleTheme()"
+        [attr.aria-label]="theme() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
+        <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" />
+      </button>
+    </div>
   </div>
-  <p class="demo">Demonstração com dados simulados · nenhum dado pessoal real</p>
+  @if (auth.mode() === 'none') {
+    <p class="notice">Modo de desenvolvimento: a API está com a autenticação desligada (AUTH_ENABLED=false)</p>
+  }
 </header>
 <main id="conteudo">
   <router-outlet />

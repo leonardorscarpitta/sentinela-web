@@ -1,12 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { RISK_LEVEL_LABEL, RISK_LEVEL_MEANING, RiskLevel, riskLevel } from '../core/risk';
-
-const LEVEL_COLOR: Record<RiskLevel, string> = {
-  CRITICO: 'var(--critical)',
-  ALTO: 'var(--serious)',
-  MODERADO: 'var(--warning)',
-  BAIXO: 'var(--good)',
-};
+import { RiskLevel } from '../core/models';
+import { RISK_LEVEL_COLOR, RISK_LEVEL_LABEL, RISK_LEVEL_MEANING } from '../core/risk';
 
 // Semicírculo de raio 80: comprimento do arco = π·80.
 const ARC = Math.PI * 80;
@@ -42,10 +36,10 @@ const ARC = Math.PI * 80;
 })
 export class RiskGauge {
   readonly score = input.required<number>();
+  readonly level = input.required<RiskLevel>();
   protected readonly arc = ARC;
-  private readonly level = computed(() => riskLevel(this.score()));
-  protected readonly color = computed(() => LEVEL_COLOR[this.level()]);
+  protected readonly color = computed(() => RISK_LEVEL_COLOR[this.level()]);
   protected readonly label = computed(() => RISK_LEVEL_LABEL[this.level()]);
   protected readonly meaning = computed(() => RISK_LEVEL_MEANING[this.level()]);
-  protected readonly offset = computed(() => ARC * (1 - this.score() / 100));
+  protected readonly offset = computed(() => ARC * (1 - Math.min(100, Math.max(0, this.score())) / 100));
 }

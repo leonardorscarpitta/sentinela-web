@@ -25,6 +25,16 @@ tr.off td {
   .btn {
     justify-self: start;
   }
+  p {
+    margin: 0;
+  }
+}
+.sanitizers {
+  margin: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
 }
 .row {
   display: grid;
@@ -47,10 +57,23 @@ tr.off td {
   }
   li {
     display: grid;
-    grid-template-columns: 3.5ch 1fr auto auto;
+    grid-template-columns: 3.5ch minmax(0, 1fr) minmax(0, 1.3fr) auto;
+
+    code {
+      overflow-wrap: anywhere;
+    }
     gap: 10px;
     align-items: center;
     padding: 6px 0;
     border-bottom: 1px solid var(--grid);
+
+    @media (max-width: 640px) {
+      grid-template-columns: 3.5ch 1fr auto;
+      code {
+        grid-column: 2 / 4;
+        grid-row: 2;
+        overflow-wrap: anywhere;
+      }
+    }
   }
 }

@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Auth } from './core/auth';
+import { OrgContext } from './core/org';
 import { Icon } from './shared/icon';
 
 type Theme = 'light' | 'dark';
@@ -22,12 +24,19 @@ function storedTheme(): Theme | null {
   styleUrl: './app.scss',
 })
 export class App {
+  protected readonly auth = inject(Auth);
+  protected readonly org = inject(OrgContext);
+  private readonly router = inject(Router);
+
   protected readonly theme = signal<Theme>(
     storedTheme() ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
   );
+  protected readonly orgs = computed(() => this.org.memberships() ?? []);
 
   constructor() {
     document.documentElement.dataset['theme'] = this.theme();
+    // Páginas sem guard (Regras PII) também mostram o menu completo quando já há sessão.
+    if (this.auth.isAuthenticated() && this.org.memberships() === null) this.org.load().catch(() => undefined);
   }
 
   protected toggleTheme(): void {
@@ -39,5 +48,15 @@ export class App {
     } catch {
       /* armazenamento indisponível: o tema vale só para esta sessão */
     }
+  }
+
+  protected switchOrg(e: Event): void {
+    this.org.select((e.target as HTMLSelectElement).value);
+    void this.router.navigateByUrl('/');
+  }
+
+  protected logout(): void {
+    this.org.select(null);
+    void this.auth.logout();
   }
 }

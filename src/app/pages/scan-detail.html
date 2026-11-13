@@ -1,0 +1,99 @@
+@if (scan(); as s) {
+  <section class="page">
+    <a routerLink="/varreduras" class="back">← Varreduras</a>
+    <div class="page-head">
+      <div>
+        <h1>{{ s.projeto }} <span class="muted">v{{ s.versao }}</span></h1>
+        <p>
+          <span class="mono">{{ s.id }}</span> · {{ s.iniciadaEm | date: "dd/MM/yyyy 'às' HH:mm" }} ·
+          {{ s.arquivosAnalisados }} arquivos · {{ s.duracaoMs / 1000 }} s ·
+          {{ s.origem === 'APP_EXEMPLO' ? 'App de exemplo' : 'Upload .zip' }}
+        </p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-sm" (click)="exportMarkdown(s)"><app-icon name="download" /> Relatório .md</button>
+        <button class="btn btn-sm" (click)="exportJson(s)"><app-icon name="download" /> Evidências .json</button>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="card"><app-risk-gauge [score]="s.riscoCidadao" /></div>
+      <div class="card stats">
+        <div>
+          <span class="muted">Gate de segurança</span>
+          @if (s.veredito === 'BLOQUEADO') {
+            <strong class="gate"><app-icon name="lock" /> Bloqueado</strong>
+          } @else {
+            <strong class="gate ok"><app-icon name="check" /> Aprovado</strong>
+          }
+        </div>
+        <div><span class="muted">Dados sensíveis mapeados</span><strong>{{ s.achados.length }}</strong></div>
+        <div><span class="muted">Fluxos rastreados</span><strong>{{ s.fluxos.length }}</strong></div>
+        <div><span class="muted">Alertas da IA</span><strong>{{ s.alertas.length }}</strong></div>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      @for (t of tabs; track t.id) {
+        <button role="tab" [attr.aria-selected]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+      }
+    </div>
+
+    @switch (tab()) {
+      @case ('alertas') {
+        <p class="text-2 intro">
+          Cada vazamento bloqueado foi traduzido pela IA (<span class="mono">{{ s.modeloIa }}</span>) em linguagem
+          simples. O código enviado ao modelo já sai mascarado: nenhum dado pessoal deixa o servidor.
+        </p>
+        <div class="grid cols">
+          @for (a of s.alertas; track a.id) {
+            <app-alert-card [alert]="a" />
+          } @empty {
+            <p class="muted">Nenhum vazamento ativo. Nada a traduzir.</p>
+          }
+        </div>
+      }
+      @case ('fluxos') {
+        <p class="text-2 intro">
+          O motor marca como contaminado todo valor que nasce de uma origem com PII, segue a marca por atribuições,
+          concatenações e chamadas de método, e bloqueia quando ela chega a um destino inseguro sem passar por um
+          sanitizador.
+        </p>
+        <div class="grid">
+          @for (f of flows(); track f.id) {
+            <app-flow-card [flow]="f" />
+          }
+        </div>
+      }
+      @case ('pii') {
+        <div class="card table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Regra</th><th>Tipo de dado</th><th>Severidade</th><th>Local</th><th>Evidência</th></tr>
+            </thead>
+            <tbody>
+              @for (a of s.achados; track a.id) {
+                <tr>
+                  <td class="mono">{{ a.id }}</td>
+                  <td>
+                    {{ ruleName(a.regraId) }}<br />
+                    <small class="muted">{{ a.tipo === 'DADO_LITERAL' ? 'Dado literal' : 'Campo sensível' }}</small>
+                  </td>
+                  <td>{{ categoryLabel[a.categoria] }}</td>
+                  <td><app-severity [value]="a.severidade" /></td>
+                  <td class="mono loc">{{ a.local.arquivo }}:{{ a.local.linha }}</td>
+                  <td><code>{{ a.evidenciaMascarada }}</code></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </section>
+} @else {
+  <section class="page">
+    <h1>Varredura não encontrada</h1>
+    <a routerLink="/varreduras">Voltar para as varreduras</a>
+  </section>
+}

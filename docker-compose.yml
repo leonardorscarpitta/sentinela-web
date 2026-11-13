@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    container_name: sentinela-web
+    ports:
+      - "127.0.0.1:4200:4200"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public

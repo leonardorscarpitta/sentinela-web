@@ -1,0 +1,102 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  grid-template-areas: 'gauge verdict' 'gauge kpis';
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'gauge' 'verdict' 'kpis';
+  }
+}
+.gauge-card {
+  grid-area: gauge;
+}
+
+.verdict {
+  grid-area: verdict;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border-left: 6px solid var(--good);
+  color: var(--good);
+
+  &.blocked {
+    border-left-color: var(--critical);
+    color: var(--critical);
+  }
+  h2 {
+    color: var(--text);
+  }
+  p {
+    margin: 6px 0 0;
+    color: var(--text-2);
+  }
+}
+
+.kpis {
+  grid-area: kpis;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.kpi {
+  display: grid;
+  gap: 2px;
+  padding: 16px;
+
+  .label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+  strong {
+    font-size: 2rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .muted {
+    font-size: 0.8rem;
+  }
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+
+  h2 {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+.alerts {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.how {
+  summary {
+    cursor: pointer;
+    h2 {
+      display: inline;
+    }
+  }
+  .weights {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  caption {
+    text-align: left;
+    font-weight: 700;
+    padding-bottom: 4px;
+  }
+}

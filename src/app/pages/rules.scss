@@ -1,0 +1,56 @@
+tr.off td {
+  opacity: 0.5;
+}
+.pattern {
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  display: inline-block;
+  max-width: 320px;
+}
+.badge.new {
+  margin-left: 6px;
+  color: var(--accent-ink);
+}
+.switch input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.form {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+
+  .btn {
+    justify-self: start;
+  }
+}
+.row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.tester {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  li {
+    display: grid;
+    grid-template-columns: 3.5ch 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--grid);
+  }
+}

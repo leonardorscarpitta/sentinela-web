@@ -1,0 +1,128 @@
+<section class="page">
+  <div class="page-head">
+    <div>
+      <h1>Painel de Risco Cidadão</h1>
+      <p>
+        Última varredura de <strong>{{ scan().projeto }}</strong> v{{ scan().versao }} ·
+        {{ scan().iniciadaEm | date: "dd/MM/yyyy 'às' HH:mm" }}
+      </p>
+    </div>
+    <div class="actions">
+      <a class="btn" [routerLink]="['/varreduras', scan().id]"><app-icon name="list" /> Ver relatório</a>
+      <a class="btn btn-primary" routerLink="/varreduras/nova"><app-icon name="shield" /> Nova varredura</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="card gauge-card">
+      <div class="card-title">
+        <h2>Risco Cidadão</h2>
+        @if (previous()) {
+          <small>
+            {{ delta() > 0 ? '+' : '' }}{{ delta() }} pts desde v{{ previous()!.versao }}
+          </small>
+        }
+      </div>
+      <app-risk-gauge [score]="scan().riscoCidadao" />
+    </div>
+
+    <div class="card verdict" [class.blocked]="scan().veredito === 'BLOQUEADO'">
+      <app-icon [name]="scan().veredito === 'BLOQUEADO' ? 'lock' : 'check'" [size]="28" />
+      <div>
+        <h2>{{ scan().veredito === 'BLOQUEADO' ? 'Publicação bloqueada' : 'Publicação liberada' }}</h2>
+        @if (scan().veredito === 'BLOQUEADO') {
+          <p>
+            {{ blocked().length }} fluxo(s) levam dados de cidadãos até saídas inseguras.
+            O gate de segurança impede o deploy desta versão até a correção.
+          </p>
+        } @else {
+          <p>Nenhum dado sensível chega a uma saída insegura.</p>
+        }
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi">
+        <span class="label">Dados sensíveis mapeados</span>
+        <strong>{{ scan().achados.length }}</strong>
+        <span class="muted">em {{ scan().arquivosAnalisados }} arquivos</span>
+      </div>
+      <div class="card kpi">
+        <span class="label">Vazamentos bloqueados</span>
+        <strong>{{ blocked().length }}</strong>
+        <span class="muted">de {{ scan().fluxos.length }} fluxos rastreados</span>
+      </div>
+      <div class="card kpi">
+        <span class="label">Fluxos sanitizados</span>
+        <strong>{{ sanitized().length }}</strong>
+        <span class="muted">mascarados antes da saída</span>
+      </div>
+      <div class="card kpi">
+        <span class="label">Alertas traduzidos pela IA</span>
+        <strong>{{ scan().alertas.length }}</strong>
+        <span class="muted mono">{{ scan().modeloIa }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">
+        <h2>Evolução do risco</h2>
+        <small>por versão analisada</small>
+      </div>
+      <app-trend-chart [points]="trend()" />
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <h2>Exposição por tipo de dado</h2>
+        <small>peso no índice</small>
+      </div>
+      <app-category-bars [bars]="categories()" />
+    </div>
+  </div>
+
+  <div>
+    <div class="section-head">
+      <h2><app-icon name="sparkle" /> O que isso significa para o cidadão</h2>
+      <a [routerLink]="['/varreduras', scan().id]" [queryParams]="{ aba: 'alertas' }">Todos os alertas</a>
+    </div>
+    <div class="grid alerts">
+      @for (a of topAlerts(); track a.id) {
+        <app-alert-card [alert]="a" [compact]="true" />
+      } @empty {
+        <p class="muted">Nenhum alerta ativo.</p>
+      }
+    </div>
+  </div>
+
+  <details class="card how">
+    <summary><h2>Como o Risco Cidadão é calculado</h2></summary>
+    <p class="text-2">
+      Cada vazamento soma <code>severidade × tipo de dado × exposição</code>. Dados sensíveis mapeados que ainda
+      não vazam somam <code>severidade × tipo de dado × {{ weights.latente }}</code>. Fluxos sanitizados não somam.
+      O total bruto vira o índice por <code>100 × (1 − e<sup>−total/60</sup>)</code>: os primeiros vazamentos pesam
+      mais, e o índice nunca passa de 100.
+    </p>
+    <div class="weights">
+      <table>
+        <caption>Severidade</caption>
+        @for (w of weights.severidade | keyvalue: keepOrder; track w.key) {
+          <tr><td>{{ labels['sev'][w.key] }}</td><td>{{ w.value }}</td></tr>
+        }
+      </table>
+      <table>
+        <caption>Tipo de dado</caption>
+        @for (w of weights.categoria | keyvalue: keepOrder; track w.key) {
+          <tr><td>{{ labels['cat'][w.key] }}</td><td>× {{ w.value }}</td></tr>
+        }
+      </table>
+      <table>
+        <caption>Exposição</caption>
+        @for (w of weights.exposicao | keyvalue: keepOrder; track w.key) {
+          <tr><td>{{ labels['sink'][w.key] }}</td><td>× {{ w.value }}</td></tr>
+        }
+      </table>
+    </div>
+  </details>
+</section>

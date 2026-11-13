@@ -124,6 +124,10 @@ export function problemMessage(error: unknown): string {
       .join('; ')}`;
   }
   if (status === 401) return BY_CODE['unauthenticated'];
+  const raw = (error as { error?: unknown } | null)?.error;
+  if (status === 403 && typeof raw === 'string' && raw.includes('CORS')) {
+    return 'A API recusou a origem deste endereço (CORS). Abra o app em http://localhost:4200 ou inclua o endereço em CORS_ALLOWED_ORIGINS.';
+  }
   if (status === 403) return BY_CODE['forbidden'];
   if (status === 404) return 'Não encontrado.';
   if (status === 409) return `Operação recusada pela API${p?.detail ? `: ${p.detail}` : '.'}`;

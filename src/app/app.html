@@ -22,9 +22,9 @@
       @if (orgs().length > 1) {
         <label class="org">
           <span class="sr-only">Organização</span>
-          <select [value]="org.slug() ?? ''" (change)="switchOrg($event)">
+          <select (change)="switchOrg($event)">
             @for (o of orgs(); track o.slug) {
-              <option [value]="o.slug">{{ o.name }}</option>
+              <option [value]="o.slug" [selected]="o.slug === org.slug()">{{ o.name }}</option>
             }
           </select>
         </label>

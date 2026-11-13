@@ -39,7 +39,7 @@ import { Icon } from './icon';
           @for (s of steps(); track $index) {
             <li [class]="s.role">
               <strong>{{ roleLabel[s.role] }}</strong>
-              <span class="mono loc">{{ s.path }}:{{ s.line }}</span>
+              <span class="mono loc">{{ s.path }}{{ s.line ? ':' + s.line : '' }}</span>
             </li>
           }
         </ol>

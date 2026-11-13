@@ -40,7 +40,7 @@ export interface Membership {
 export interface TraceStep {
   role: TraceRole;
   path: string;
-  line: number;
+  line: number | null;
 }
 
 export interface PrivacyInfo {

@@ -35,6 +35,8 @@ export class App {
 
   constructor() {
     document.documentElement.dataset['theme'] = this.theme();
+    // Páginas sem guard (Regras PII) também mostram o menu completo quando já há sessão.
+    if (this.auth.isAuthenticated() && this.org.memberships() === null) this.org.load().catch(() => undefined);
   }
 
   protected toggleTheme(): void {

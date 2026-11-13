@@ -75,7 +75,7 @@ import { DurationPipe } from '../shared/duration';
                 <app-status kind="stage" [value]="s.status" />
               </div>
               @if (s.failedBy) {
-                <p class="fail"><app-icon name="lock" [size]="16" /> Bloqueou: achado de severidade {{ sev(s.failedBy) }} ou maior.</p>
+                <p class="fail"><app-icon name="lock" [size]="16" /> Bloqueou a publicação: achado de severidade {{ sev(s.failedBy) }}.</p>
               }
               @if (s.log.length) {
                 <details>

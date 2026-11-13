@@ -57,7 +57,11 @@ tr.off td {
   }
   li {
     display: grid;
-    grid-template-columns: 3.5ch 1fr auto auto;
+    grid-template-columns: 3.5ch minmax(0, 1fr) minmax(0, 1.3fr) auto;
+
+    code {
+      overflow-wrap: anywhere;
+    }
     gap: 10px;
     align-items: center;
     padding: 6px 0;

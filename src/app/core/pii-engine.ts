@@ -58,8 +58,8 @@ export interface RuleMatch {
   valorMascarado: string;
 }
 
-export function compileRule(rule: Pick<PiiRule, 'padrao' | 'alvo'>): RegExp {
-  return new RegExp(rule.padrao, rule.alvo === 'identificador' ? 'gi' : 'g');
+export function compileRule(rule: Pick<PiiRule, 'padrao' | 'flags'>): RegExp {
+  return new RegExp(rule.padrao, `g${rule.flags}`);
 }
 
 export function ruleError(padrao: string): string | null {

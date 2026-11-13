@@ -88,7 +88,7 @@
               <div class="card generate">
                 @if (alertMissing()) {
                   <p class="text-2">
-                    Este vazamento ainda não foi traduzido. A IA (Claude) recebe só o tipo de dado, a regra, o destino e a
+                    Este achado ainda não foi traduzido. A IA (Claude) recebe só o tipo de dado, a regra, o destino e a
                     severidade — nunca código, caminhos, valores ou nomes — e escreve o que acontece, quem é afetado e o
                     que fazer, em português simples.
                   </p>
@@ -116,9 +116,9 @@
             <h2>Alterar status</h2>
             <label class="field">
               Novo status
-              <select [value]="target()" (change)="pickTarget($event)">
+              <select (change)="pickTarget($event)">
                 @for (t of targets(); track t) {
-                  <option [value]="t">{{ statusLabel[t] }}</option>
+                  <option [value]="t" [selected]="t === target()">{{ statusLabel[t] }}</option>
                 }
               </select>
             </label>

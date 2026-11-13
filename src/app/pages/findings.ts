@@ -41,37 +41,37 @@ const oneOf = <K extends string>(r: Record<K, string>, v: string | undefined): K
         </label>
         <label class="field">
           Tipo
-          <select [value]="filter().kind ?? ''" (change)="set('kind', $event)">
+          <select (change)="set('kind', $event)">
             <option value="">Todos</option>
             @for (k of kinds; track k[0]) {
-              <option [value]="k[0]">{{ k[1] }}</option>
+              <option [value]="k[0]" [selected]="k[0] === filter().kind">{{ k[1] }}</option>
             }
           </select>
         </label>
         <label class="field">
           Severidade
-          <select [value]="filter().severity ?? ''" (change)="set('severity', $event)">
+          <select (change)="set('severity', $event)">
             <option value="">Todas</option>
             @for (s of severities; track s[0]) {
-              <option [value]="s[0]">{{ s[1] }}</option>
+              <option [value]="s[0]" [selected]="s[0] === filter().severity">{{ s[1] }}</option>
             }
           </select>
         </label>
         <label class="field">
           Status
-          <select [value]="filter().status ?? ''" (change)="set('status', $event)">
+          <select (change)="set('status', $event)">
             <option value="">Todos</option>
             @for (s of statuses; track s[0]) {
-              <option [value]="s[0]">{{ s[1] }}</option>
+              <option [value]="s[0]" [selected]="s[0] === filter().status">{{ s[1] }}</option>
             }
           </select>
         </label>
         <label class="field">
           Repositório
-          <select [value]="filter().repository ?? ''" (change)="set('repository', $event)">
+          <select (change)="set('repository', $event)">
             <option value="">Todos</option>
             @for (n of repoNames(); track n) {
-              <option [value]="n">{{ n }}</option>
+              <option [value]="n" [selected]="n === filter().repository">{{ n }}</option>
             }
           </select>
         </label>
@@ -119,6 +119,10 @@ const oneOf = <K extends string>(r: Record<K, string>, v: string | undefined): K
   styles: `
     .count { margin: 0 0 8px; font-size: .85rem; }
     td.loc { min-width: 200px; }
+    @media (max-width: 640px) {
+      th:nth-child(4), td:nth-child(4), th:nth-child(6), td:nth-child(6) { display: none; }
+      td:nth-child(2) { min-width: 180px; }
+    }
   `,
 })
 export class FindingsPage {

@@ -43,7 +43,10 @@ export class DashboardPage {
 
   protected readonly categories = computed(() =>
     this.risk.hasValue()
-      ? [...this.risk.value().byCategory]
+      ? this.risk
+          .value()
+          // A API lista as 5 categorias sempre; só as que têm algo aparecem nas barras.
+          .byCategory.filter((c) => c.weight > 0 || c.flows > 0 || c.mapped > 0)
           .sort((a, b) => b.weight - a.weight)
           .map((c) => ({
             rotulo: CATEGORY_LABEL[c.category] ?? c.category,

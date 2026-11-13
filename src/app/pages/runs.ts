@@ -20,10 +20,10 @@ import { DurationPipe } from '../shared/duration';
         </div>
         <label class="field">
           Repositório
-          <select [value]="repositorio() ?? ''" (change)="filter($event)">
+          <select (change)="filter($event)">
             <option value="">Todos</option>
             @for (n of repoNames(); track n) {
-              <option [value]="n">{{ n }}</option>
+              <option [value]="n" [selected]="n === repositorio()">{{ n }}</option>
             }
           </select>
         </label>

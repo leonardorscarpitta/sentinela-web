@@ -6,7 +6,7 @@ services:
       - "127.0.0.1:4200:4200"
     environment:
       # Para onde o ng serve encaminha /api (a sentinela-api). Veja o README para rodar junto do backend.
-      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:8080}
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:18080}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

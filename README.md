@@ -98,12 +98,14 @@ docker compose up --build          # http://localhost:4200 (ng serve em modo deb
 ### Com a sentinela-api
 
 1. Suba o backend conforme o README dele (`cp .env.example .env`, preencha os segredos e `docker compose up -d`). O Keycloak do backend já espera este app em `http://localhost:4200` (`ARTEMISAPPSEC_WEB_ORIGIN`, redirect `/auth/callback`).
-2. O proxy do `ng serve` encaminha `/api` para `API_PROXY_TARGET` (padrão `http://host.docker.internal:8080`, a API publicada no host). A API do backend publica a porta só em `127.0.0.1`, que um contêiner não alcança pelo host; nesse caso, ligue o app à rede do backend:
+2. O proxy do `ng serve` encaminha `/api` para `API_PROXY_TARGET` (padrão `http://host.docker.internal:18080`: a API publicada no host com `API_PORT=18080`, porque a 8080 desta máquina já está ocupada). Como o backend publica as portas só em `127.0.0.1`, um contêiner não as alcança pelo host; o caminho que funciona é ligar o app à rede do backend:
 
    ```bash
    API_PROXY_TARGET=http://api:8080 docker compose up -d --build
    docker network connect sentinela-api_default sentinela-web
    ```
+
+   Abra o app em **<http://localhost:4200>** (não em `127.0.0.1`): é a origem liberada no `CORS_ALLOWED_ORIGINS` e no Keycloak do backend; com outra origem a API recusa os `POST` (`403 Invalid CORS request`).
 
 3. Login: na primeira vez, abra <https://auth.artemisappsec.localhost:9443> e aceite o certificado local (ou confie na CA do Caddy, como explica o README do backend). Usuários de teste: `./keycloak/create-dev-users.sh` no backend. Para testar sem login, use `AUTH_ENABLED=false` no `.env` do backend.
 

@@ -57,14 +57,15 @@
     </div>
     <table>
       <thead>
-        <tr><th>Regra</th><th>Tipo de dado</th><th>Destino inseguro</th><th>Severidade</th></tr>
+        <tr><th>Regra</th><th>Tipo de dado</th><th>Destino inseguro</th><th>Linguagens</th><th>Severidade</th></tr>
       </thead>
       <tbody>
-        @for (r of flowRules; track r.id) {
+        @for (r of flowRules; track $index) {
           <tr>
-            <td><strong>{{ r.nome }}</strong><br /><small class="mono muted">{{ r.id }}</small></td>
+            <td class="mono">{{ flowId(r) }}</td>
             <td>{{ categoryLabel[r.categoria] }}</td>
             <td>{{ sinkLabel[r.destino] }}</td>
+            <td><small>{{ r.linguagens }}</small></td>
             <td><app-severity [value]="r.severidade" /></td>
           </tr>
         }

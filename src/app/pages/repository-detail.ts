@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { SentinelaApi } from '../core/sentinela-api';
 import { OrgContext } from '../core/org';
-import { RepositoryAccess, STAGE_LABEL } from '../core/models';
+import { RepositoryAccess, SEVERITY_LABEL, STAGE_LABEL } from '../core/models';
 import { StatusBadge } from '../shared/status-badge';
 import { Problem } from '../shared/problem';
 import { Icon } from '../shared/icon';
@@ -110,7 +110,7 @@ const CHECK_LABEL: Record<string, string> = {
                 <li [class.pii]="s.id === 'pii'" [class.off]="!s.enabled">
                   <strong>{{ stageLabel[s.id] ?? s.id }}</strong>
                   <span class="muted">{{ s.tool }}</span>
-                  <span class="badge">{{ s.enabled ? (s.failOn && s.failOn !== 'never' ? 'bloqueia em ' + s.failOn : 'só informa') : 'desligado' }}</span>
+                  <span class="badge">{{ s.enabled ? (s.failOn && s.failOn !== 'never' ? 'bloqueia a partir de ' + (sevLabel[s.failOn] ?? s.failOn).toLowerCase() : 'só informa') : 'desligado' }}</span>
                 </li>
               }
             </ul>
@@ -146,6 +146,7 @@ export class RepositoryDetailPage {
   protected readonly repo = this.api.repository(this.name);
   protected readonly access = this.api.access(this.name);
   protected readonly stageLabel = STAGE_LABEL;
+  protected readonly sevLabel: Record<string, string> = SEVERITY_LABEL;
   protected readonly checkLabel = CHECK_LABEL;
   protected readonly busy = signal(false);
   protected readonly copied = signal(false);

@@ -49,6 +49,10 @@ export class RulesPage {
   private readonly status = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   protected readonly canSave = computed(() => this.status() === 'VALID');
 
+  protected flowId(r: { categoria: string; destino: string }): string {
+    return `pii-flow-${r.categoria}-${r.destino.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())}`;
+  }
+
   protected onSample(e: Event): void {
     this.sample.set((e.target as HTMLTextAreaElement).value.slice(0, MAX_SAMPLE));
   }
@@ -57,7 +61,9 @@ export class RulesPage {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
     const slug = v.nome.toLowerCase().normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '');
-    this.catalog.add({ ...v, id: `custom-${slug}`, ativa: true, personalizada: true });
+    // Rascunho: identificadores ignoram maiúsculas para facilitar o teste.
+    const flags = v.alvo === 'identificador' ? 'i' : '';
+    this.catalog.add({ ...v, flags, id: `custom-${slug}`, ativa: true, personalizada: true });
     this.form.reset();
   }
 }

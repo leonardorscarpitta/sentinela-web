@@ -3,41 +3,45 @@
     <div>
       <h1>Regras de PII</h1>
       <p>
-        Regras do motor de parsing. <strong>Valor</strong> procura o dado em si (com validador de dígito para evitar
-        falso positivo); <strong>Identificador</strong> procura campos e variáveis que carregam o dado e vira origem
-        no taint analysis.
+        Regras do estágio <strong>pii</strong> (Semgrep CE, só regras próprias). <strong>Mapeamento</strong> encontra onde
+        o dado pessoal está — o valor em si (confirmado pelo dígito verificador) ou o campo/variável que o carrega.
+        <strong>Fluxo</strong> segue esse dado até uma saída insegura e bloqueia a publicação.
       </p>
     </div>
   </div>
 
   <div class="card table-wrap">
+    <div class="card-title">
+      <h2>Mapeamento</h2>
+      <small>desligar aqui afeta só o teste abaixo</small>
+    </div>
     <table>
       <thead>
-        <tr><th>Ativa</th><th>Regra</th><th>Alvo</th><th>Padrão</th><th>Validador</th><th>Severidade</th><th></th></tr>
+        <tr><th>Teste</th><th>Regra</th><th>Alvo</th><th>Padrão</th><th>Validador</th><th>Severidade</th><th></th></tr>
       </thead>
       <tbody>
-        @for (r of api.rules(); track r.id) {
+        @for (r of catalog.rules(); track r.id) {
           <tr [class.off]="!r.ativa">
             <td>
               <label class="switch">
-                <input type="checkbox" [checked]="r.ativa" (change)="api.toggleRule(r.id)" />
-                <span class="sr-only">Ativar {{ r.nome }}</span>
+                <input type="checkbox" [checked]="r.ativa" (change)="catalog.toggle(r.id)" />
+                <span class="sr-only">Usar {{ r.nome }} no teste</span>
               </label>
             </td>
             <td>
               <strong>{{ r.nome }}</strong>
               @if (r.personalizada) {
-                <span class="badge new">nova</span>
+                <span class="badge new">local</span>
               }
-              <br /><small class="muted">{{ categoryLabel[r.categoria] }}</small>
+              <br /><small class="muted">{{ categoryLabel[r.categoria] }} · <span class="mono">{{ r.id }}</span></small>
             </td>
-            <td>{{ r.alvo === 'VALOR' ? 'Valor' : 'Identificador' }}</td>
+            <td>{{ r.alvo === 'valor' ? 'Valor' : 'Identificador' }}</td>
             <td><code class="pattern">{{ r.padrao }}</code></td>
             <td>{{ validatorLabel[r.validador] }}</td>
             <td><app-severity [value]="r.severidade" /></td>
             <td>
               @if (r.personalizada) {
-                <button class="btn btn-sm btn-ghost" (click)="api.removeRule(r.id)">Remover</button>
+                <button class="btn btn-sm btn-ghost" (click)="catalog.remove(r.id)">Remover</button>
               }
             </td>
           </tr>
@@ -46,9 +50,39 @@
     </table>
   </div>
 
+  <div class="card table-wrap">
+    <div class="card-title">
+      <h2>Fluxo (taint analysis)</h2>
+      <small>origem → propagação → destino</small>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Regra</th><th>Tipo de dado</th><th>Destino inseguro</th><th>Severidade</th></tr>
+      </thead>
+      <tbody>
+        @for (r of flowRules; track r.id) {
+          <tr>
+            <td><strong>{{ r.nome }}</strong><br /><small class="mono muted">{{ r.id }}</small></td>
+            <td>{{ categoryLabel[r.categoria] }}</td>
+            <td>{{ sinkLabel[r.destino] }}</td>
+            <td><app-severity [value]="r.severidade" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p class="muted sanitizers">
+      Sanitizadores reconhecidos (o dado deixa de contar como vazamento):
+      @for (s of sanitizers; track s) {
+        <code>{{ s }}</code>
+      }
+    </p>
+  </div>
+
   <div class="grid grid-2">
     <form class="card form" [formGroup]="form" (ngSubmit)="save()">
-      <h2>Nova regra</h2>
+      <h2>Rascunho de regra</h2>
+      <p class="muted">Experimente um padrão novo no teste ao lado. Ele fica só nesta aba; para valer no motor, a regra
+        entra em <span class="mono">scanner/rules/pii/</span> da sentinela-api.</p>
       <label class="field">
         Nome
         <input type="text" formControlName="nome" placeholder="Ex.: Número do NIS / PIS" />
@@ -65,8 +99,8 @@
         <label class="field">
           Alvo
           <select formControlName="alvo">
-            <option value="VALOR">Valor (dado literal)</option>
-            <option value="IDENTIFICADOR">Identificador (campo/variável)</option>
+            <option value="valor">Valor (dado literal)</option>
+            <option value="identificador">Identificador (campo/variável)</option>
           </select>
         </label>
       </div>
@@ -97,15 +131,15 @@
           </select>
         </label>
       </div>
-      <button class="btn btn-primary" type="submit" [disabled]="!canSave()"><app-icon name="rules" /> Adicionar regra</button>
+      <button class="btn btn-primary" type="submit" [disabled]="!canSave()"><app-icon name="rules" /> Adicionar ao teste</button>
     </form>
 
     <div class="card tester">
       <h2>Testar regras</h2>
       <label class="field">
         Trecho de código ou configuração
-        <small>Use só dados fictícios. O teste roda no navegador.</small>
-        <textarea rows="12" [value]="sample()" (input)="onSample($event)" spellcheck="false"></textarea>
+        <small>Use só dados fictícios. O teste roda no navegador e nada é enviado.</small>
+        <textarea rows="12" [value]="sample()" (input)="onSample($event)" spellcheck="false" maxlength="20000"></textarea>
       </label>
       <h3>{{ matches().length }} ocorrência(s)</h3>
       <ul>

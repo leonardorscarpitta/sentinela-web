@@ -25,6 +25,16 @@ tr.off td {
   .btn {
     justify-self: start;
   }
+  p {
+    margin: 0;
+  }
+}
+.sanitizers {
+  margin: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
 }
 .row {
   display: grid;

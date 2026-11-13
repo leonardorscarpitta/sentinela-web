@@ -5,6 +5,7 @@ export interface TrendPoint {
   rotulo: string;
   data: string;
   valor: number;
+  detalhe?: string;
 }
 
 const W = 600;
@@ -17,7 +18,7 @@ const PAD = { l: 36, r: 16, t: 16, b: 32 };
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="wrap">
-      <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" aria-label="Evolução do Risco Cidadão por versão"
+      <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" aria-label="Evolução do Risco Cidadão por varredura"
         (mouseleave)="active.set(null)">
         @for (g of grid; track g) {
           <line [attr.x1]="pad.l" [attr.x2]="w - pad.r" [attr.y1]="y(g)" [attr.y2]="y(g)" class="grid" />
@@ -29,7 +30,7 @@ const PAD = { l: 36, r: 16, t: 16, b: 32 };
         }
         @for (p of pts(); track p.rotulo; let i = $index; let last = $last) {
           <circle [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="active()?.i === i || last ? 6 : 4.5" class="pt" />
-          <text [attr.x]="p.x" [attr.y]="h - 10" text-anchor="middle" class="axis">v{{ p.rotulo }}</text>
+          <text [attr.x]="p.x" [attr.y]="h - 10" text-anchor="middle" class="axis">{{ p.rotulo }}</text>
           @if (last) {
             <text [attr.x]="p.x - 10" [attr.y]="p.y - 12" text-anchor="end" class="label">{{ p.valor }}</text>
           }
@@ -39,16 +40,19 @@ const PAD = { l: 36, r: 16, t: 16, b: 32 };
       </svg>
       @if (active(); as a) {
         <div class="tip" [style.left.%]="(a.x / w) * 100" [style.top.%]="(a.y / h) * 100">
-          <strong>v{{ a.rotulo }}</strong> · {{ a.data | date: 'dd/MM HH:mm' }}<br />
+          <strong>{{ a.rotulo }}</strong> · {{ a.data | date: 'dd/MM HH:mm' }}<br />
+          @if (a.detalhe) {
+            {{ a.detalhe }}<br />
+          }
           Risco Cidadão: <strong>{{ a.valor }}</strong>
         </div>
       }
     </div>
     <table class="sr-only">
-      <caption>Risco Cidadão por versão</caption>
-      <tr><th>Versão</th><th>Data</th><th>Risco</th></tr>
+      <caption>Risco Cidadão por varredura</caption>
+      <tr><th>Varredura</th><th>Data</th><th>Risco</th></tr>
       @for (p of points(); track p.rotulo) {
-        <tr><td>{{ p.rotulo }}</td><td>{{ p.data | date: 'dd/MM/yyyy' }}</td><td>{{ p.valor }}</td></tr>
+        <tr><td>{{ p.rotulo }} {{ p.detalhe }}</td><td>{{ p.data | date: 'dd/MM/yyyy' }}</td><td>{{ p.valor }}</td></tr>
       }
     </table>
   `,

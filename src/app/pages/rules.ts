@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, AbstractControl, Validators } from '@angular/forms';
+import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { SentinelaApi } from '../core/sentinela-api';
-import { RULE_TESTER_SAMPLE } from '../core/mock-data';
-import { CATEGORY_LABEL, PiiCategory, PiiRule, SEVERITY_LABEL, Severity, VALIDATOR_LABEL, Validator } from '../core/models';
+import { CATEGORY_LABEL, PiiCategory, SEVERITY_LABEL, SINK_LABEL, Severity } from '../core/models';
+import { FLOW_RULES, RULE_TESTER_SAMPLE, RuleTarget, RulesCatalog, SANITIZERS, VALIDATOR_LABEL, Validator } from '../core/pii-rules';
 import { ruleError, runRules } from '../core/pii-engine';
 import { SeverityBadge } from '../shared/severity-badge';
 import { Icon } from '../shared/icon';
@@ -13,6 +12,8 @@ const regexValidator = (c: AbstractControl): ValidationErrors | null => {
   return err ? { regex: err } : null;
 };
 
+const MAX_SAMPLE = 20_000;
+
 @Component({
   selector: 'app-rules',
   imports: [ReactiveFormsModule, SeverityBadge, Icon],
@@ -21,7 +22,7 @@ const regexValidator = (c: AbstractControl): ValidationErrors | null => {
   styleUrl: './rules.scss',
 })
 export class RulesPage {
-  protected readonly api = inject(SentinelaApi);
+  protected readonly catalog = inject(RulesCatalog);
   private readonly fb = inject(NonNullableFormBuilder);
 
   protected readonly categories = Object.entries(CATEGORY_LABEL) as [PiiCategory, string][];
@@ -29,31 +30,34 @@ export class RulesPage {
   protected readonly validators = Object.entries(VALIDATOR_LABEL) as [Validator, string][];
   protected readonly categoryLabel = CATEGORY_LABEL;
   protected readonly validatorLabel = VALIDATOR_LABEL;
+  protected readonly sinkLabel = SINK_LABEL;
+  protected readonly flowRules = FLOW_RULES;
+  protected readonly sanitizers = SANITIZERS;
 
   protected readonly form = this.fb.group({
     nome: ['', [Validators.required, Validators.maxLength(60)]],
-    categoria: ['IDENTIFICACAO' as PiiCategory],
-    alvo: ['VALOR' as PiiRule['alvo']],
+    categoria: ['identification' as PiiCategory],
+    alvo: ['valor' as RuleTarget],
     padrao: ['', [regexValidator, Validators.maxLength(300)]],
-    validador: ['NENHUM' as Validator],
-    severidade: ['MEDIA' as Severity],
+    validador: ['none' as Validator],
+    severidade: ['medium' as Severity],
   });
 
   protected readonly sample = signal(RULE_TESTER_SAMPLE);
-  protected readonly matches = computed(() => runRules(this.api.rules(), this.sample()));
+  protected readonly matches = computed(() => runRules(this.catalog.rules(), this.sample()));
 
   private readonly status = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   protected readonly canSave = computed(() => this.status() === 'VALID');
 
   protected onSample(e: Event): void {
-    this.sample.set((e.target as HTMLTextAreaElement).value);
+    this.sample.set((e.target as HTMLTextAreaElement).value.slice(0, MAX_SAMPLE));
   }
 
   protected save(): void {
     if (this.form.invalid) return;
     const v = this.form.getRawValue();
-    const id = `custom-${v.nome.toLowerCase().normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')}`;
-    this.api.saveRule({ ...v, id, ativa: true, personalizada: true });
+    const slug = v.nome.toLowerCase().normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '');
+    this.catalog.add({ ...v, id: `custom-${slug}`, ativa: true, personalizada: true });
     this.form.reset();
   }
 }

@@ -1,4 +1,4 @@
-import { PiiRule, Validator } from './models';
+import { PiiRule, Validator } from './pii-rules';
 
 const digits = (s: string) => s.replace(/\D/g, '');
 
@@ -38,10 +38,10 @@ export function isValidLuhn(value: string): boolean {
 }
 
 const VALIDATORS: Record<Validator, (v: string) => boolean> = {
-  NENHUM: () => true,
-  CPF_DV: isValidCpf,
-  CNS_DV: isValidCns,
-  LUHN: isValidLuhn,
+  none: () => true,
+  cpf: isValidCpf,
+  cns: isValidCns,
+  luhn: isValidLuhn,
 };
 
 /** Mantém separadores e os 2 últimos caracteres; o resto vira '*'. */
@@ -56,12 +56,10 @@ export interface RuleMatch {
   regra: PiiRule;
   linha: number;
   valorMascarado: string;
-  validado: boolean;
 }
 
 export function compileRule(rule: Pick<PiiRule, 'padrao' | 'alvo'>): RegExp {
-  const flags = rule.alvo === 'IDENTIFICADOR' ? 'gi' : 'g';
-  return new RegExp(rule.padrao, flags);
+  return new RegExp(rule.padrao, rule.alvo === 'identificador' ? 'gi' : 'g');
 }
 
 export function ruleError(padrao: string): string | null {
@@ -78,8 +76,8 @@ export function ruleError(padrao: string): string | null {
 const IDENTIFIER_RE = /\b[A-Za-z_$][\w$]*\b/g;
 
 /**
- * Prévia local do motor: VALOR procura dados literais (e confirma com o
- * validador); IDENTIFICADOR procura nomes de campos/variáveis sensíveis.
+ * Prévia local, no navegador, das regras de mapeamento: "valor" procura o dado literal (e confirma com o
+ * validador de dígito); "identificador" procura nomes de campos/variáveis sensíveis.
  */
 export function runRules(rules: PiiRule[], text: string): RuleMatch[] {
   const out: RuleMatch[] = [];
@@ -87,19 +85,18 @@ export function runRules(rules: PiiRule[], text: string): RuleMatch[] {
   for (const regra of rules.filter((r) => r.ativa)) {
     const re = compileRule(regra);
     lines.forEach((content, idx) => {
-      if (regra.alvo === 'VALOR') {
+      if (regra.alvo === 'valor') {
         for (const m of content.matchAll(re)) {
-          const validado = VALIDATORS[regra.validador](m[0]);
-          if (regra.validador !== 'NENHUM' && !validado) continue;
+          if (!VALIDATORS[regra.validador](m[0])) continue;
           // Em "chave=valor" a chave não é sensível: só o valor é mascarado.
           const kv = /^([^=:]+[=:]\s*)(.+)$/.exec(m[0]);
           const valorMascarado = kv ? kv[1] + mask(kv[2]) : mask(m[0]);
-          out.push({ regra, linha: idx + 1, valorMascarado, validado });
+          out.push({ regra, linha: idx + 1, valorMascarado });
         }
       } else {
         for (const id of content.match(IDENTIFIER_RE) ?? []) {
           re.lastIndex = 0;
-          if (re.test(id)) out.push({ regra, linha: idx + 1, valorMascarado: id, validado: true });
+          if (re.test(id)) out.push({ regra, linha: idx + 1, valorMascarado: id });
         }
       }
     });

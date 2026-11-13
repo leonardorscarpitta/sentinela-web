@@ -23,7 +23,7 @@ header {
   padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 .brand {
   display: flex;
@@ -36,16 +36,17 @@ header {
 }
 nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   margin-left: auto;
   overflow-x: auto;
+  min-width: 0;
 
   a {
     display: flex;
     align-items: center;
     gap: 6px;
     min-height: 40px;
-    padding: 0 12px;
+    padding: 0 10px;
     border-radius: 8px;
     color: var(--text-2);
     text-decoration: none;
@@ -61,7 +62,27 @@ nav {
     }
   }
 }
-.demo {
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.org select {
+  min-height: 36px;
+  padding: 4px 8px;
+  max-width: 160px;
+  font-size: 0.9rem;
+}
+.org-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-2);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notice {
   margin: 0;
   padding: 4px 16px;
   text-align: center;
@@ -70,7 +91,7 @@ nav {
   background: var(--surface-2);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1000px) {
   .bar {
     flex-wrap: wrap;
   }
@@ -79,7 +100,12 @@ nav {
     width: 100%;
     margin-left: 0;
   }
-  .theme {
+  .tools {
     margin-left: auto;
+  }
+}
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none;
   }
 }

@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { SEVERITY_LABEL, Severity } from '../core/models';
 
 export const SEVERITY_COLOR: Record<Severity, string> = {
-  CRITICA: 'var(--critical)',
-  ALTA: 'var(--serious)',
-  MEDIA: 'var(--warning)',
-  BAIXA: 'var(--neutral)',
+  critical: 'var(--critical)',
+  high: 'var(--serious)',
+  medium: 'var(--warning)',
+  low: 'var(--neutral)',
 };
 
 @Component({
@@ -16,5 +16,5 @@ export const SEVERITY_COLOR: Record<Severity, string> = {
 export class SeverityBadge {
   readonly value = input.required<Severity>();
   protected readonly color = computed(() => SEVERITY_COLOR[this.value()]);
-  protected readonly label = computed(() => SEVERITY_LABEL[this.value()]);
+  protected readonly label = computed(() => SEVERITY_LABEL[this.value()] ?? this.value());
 }

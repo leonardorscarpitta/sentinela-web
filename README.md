@@ -89,21 +89,16 @@ Erros da API (RFC 7807) viram mensagens em pt-BR, com o código técnico ao lado
 
 ## Rodando
 
-Requer apenas Docker. Sozinho, o app sobe e a página **Regras PII** funciona; o resto precisa da sentinela-api.
-
-```bash
-docker compose up --build          # http://localhost:4200 (ng serve em modo debug, source maps, recarga ao editar src/)
-```
-
-### Com a sentinela-api
+Requer apenas Docker e a sentinela-api rodando: o app entra na rede `sentinela-web-gateway`, criada pelo `docker compose` do backend, e fala só com o `api-gateway` dela (banco, Keycloak e a porta de debug da API ficam fora de alcance).
 
 1. Suba o backend conforme o README dele (`cp .env.example .env`, preencha os segredos e `docker compose up -d`). O Keycloak do backend já espera este app em `http://localhost:4200` (`ARTEMISAPPSEC_WEB_ORIGIN`, redirect `/auth/callback`).
-2. O proxy do `ng serve` encaminha `/api` para `API_PROXY_TARGET` (padrão `http://host.docker.internal:18080`: a API publicada no host com `API_PORT=18080`, porque a 8080 desta máquina já está ocupada). Como o backend publica as portas só em `127.0.0.1`, um contêiner não as alcança pelo host; o caminho que funciona é ligar o app à rede do backend:
+2. Suba o app:
 
    ```bash
-   API_PROXY_TARGET=http://api:8080 docker compose up -d --build
-   docker network connect sentinela-api_default sentinela-web
+   docker compose up -d --build     # ng serve em modo debug (source maps, recarga ao editar src/)
    ```
+
+   O proxy do `ng serve` encaminha `/api` para `API_PROXY_TARGET` (padrão `http://api-gateway:8080`).
 
    Abra o app em **<http://localhost:4200>** (não em `127.0.0.1`): é a origem liberada no `CORS_ALLOWED_ORIGINS` e no Keycloak do backend; com outra origem a API recusa os `POST` (`403 Invalid CORS request`).
 

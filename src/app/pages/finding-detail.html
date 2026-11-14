@@ -1,0 +1,168 @@
+<section class="page">
+  <a routerLink="/achados" class="back"><app-icon name="back" /> Achados</a>
+
+  @if (details.error(); as e) {
+    <app-problem [error]="e" />
+  } @else if (finding(); as f) {
+    <div class="page-head">
+      <div>
+        <p class="tags">
+          <app-severity [value]="f.severity" />
+          <app-status kind="finding" [value]="f.status" />
+          <span class="badge">{{ kindLabel[f.kind] ?? f.kind }}</span>
+          @if (f.overdue) {
+            <span class="badge"><span class="dot" style="color: var(--critical)"></span>Prazo vencido</span>
+          }
+        </p>
+        <h1>{{ f.title }}</h1>
+        <p>
+          <span class="mono">{{ f.reference }}</span> ·
+          <a [routerLink]="['/repositorios', f.repository]">{{ f.repository }}</a> ·
+          detectado em {{ f.detectedAt | date: 'dd/MM/yyyy' }}
+          @if (f.dueAt) {
+            · corrigir até {{ f.dueAt | date: 'dd/MM/yyyy' }}
+          }
+        </p>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="main">
+        @if (privacy(); as p) {
+          <app-flow-card [finding]="f" />
+          <dl class="card facts">
+            <div><dt>Tipo de dado</dt><dd>{{ categoryLabel[p.category] ?? p.category }}</dd></div>
+            <div><dt>Análise</dt><dd>{{ p.type === 'flow' ? 'Fluxo (taint analysis)' : 'Mapeamento' }}</dd></div>
+            <div><dt>Destino</dt><dd>{{ p.sink ? sinkLabel[p.sink] : 'Não sai do sistema' }}</dd></div>
+            <div><dt>Regra</dt><dd class="mono">{{ f.ruleId }}</dd></div>
+            @if (f.cwe) {
+              <div><dt>CWE</dt><dd class="mono">{{ f.cwe }}</dd></div>
+            }
+          </dl>
+          <p class="text-2 note">
+            @if (p.type === 'flow') {
+              O motor marcou o dado na origem, seguiu a marca pelas atribuições e chamadas e encontrou a saída insegura
+              sem passar por um sanitizador (<code>PiiMasker</code>, <code>mask…</code>, <code>hash…</code>,
+              <code>anonymize…</code>). Enquanto estiver aberto, o estágio <strong>pii</strong> bloqueia a publicação.
+            } @else {
+              O dado pessoal foi encontrado no código, mas ainda não chega a uma saída insegura. Ele soma ao Risco
+              Cidadão com peso reduzido (risco latente).
+            }
+            O relatório mostra só arquivo e linha: nenhum trecho de código ou valor é guardado.
+          </p>
+        } @else {
+          <dl class="card facts">
+            <div><dt>Regra</dt><dd class="mono">{{ f.cve ?? f.ruleId }}</dd></div>
+            @if (f.location; as loc) {
+              <div><dt>Local</dt><dd class="loc">{{ loc.path }}{{ loc.line ? ':' + loc.line : '' }}</dd></div>
+            }
+            @if (f.packageName) {
+              <div><dt>Pacote</dt><dd class="mono">{{ f.packageName }}&#64;{{ f.installedVersion }} → {{ f.fixedVersion ?? 'sem correção' }}</dd></div>
+            }
+            @if (f.cwe) {
+              <div><dt>CWE</dt><dd class="mono">{{ f.cwe }}</dd></div>
+            }
+            @if (f.tool) {
+              <div><dt>Ferramenta</dt><dd>{{ f.tool }}</dd></div>
+            }
+          </dl>
+        }
+
+        @if (details.value()?.description; as d) {
+          <div class="card">
+            <h2>Descrição</h2>
+            <p class="text-2 desc">{{ d }}</p>
+          </div>
+        }
+
+        @if (privacy()) {
+          <div class="alert-box">
+            <div class="section-head">
+              <h2><app-icon name="sparkle" /> Alerta para o cidadão</h2>
+            </div>
+            @if (alert.hasValue()) {
+              <app-alert-card [alert]="alert.value()" />
+            } @else if (alert.isLoading()) {
+              <p class="loading">Procurando alerta já gerado</p>
+            } @else {
+              <div class="card generate">
+                @if (alertMissing()) {
+                  <p class="text-2">
+                    Este achado ainda não foi traduzido. A IA (Claude) recebe só o tipo de dado, a regra, o destino e a
+                    severidade — nunca código, caminhos, valores ou nomes — e escreve o que acontece, quem é afetado e o
+                    que fazer, em português simples.
+                  </p>
+                } @else if (alert.error(); as e) {
+                  <app-problem [error]="e" />
+                }
+                @if (alertError(); as e) {
+                  <app-problem [error]="e" />
+                }
+                <button class="btn btn-primary" (click)="generate()" [disabled]="generating() || !org.can('triage')">
+                  <app-icon name="sparkle" /> {{ generating() ? 'Gerando…' : 'Gerar alerta para o cidadão' }}
+                </button>
+                @if (!org.can('triage')) {
+                  <small class="muted">Seu papel não pode gerar alertas (permissão de triagem).</small>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <aside class="side">
+        @if (org.can('triage')) {
+          <form class="card status-form" (submit)="$event.preventDefault(); saveStatus()">
+            <h2>Alterar status</h2>
+            <label class="field">
+              Novo status
+              <select (change)="pickTarget($event)">
+                @for (t of targets(); track t) {
+                  <option [value]="t" [selected]="t === target()">{{ statusLabel[t] }}</option>
+                }
+              </select>
+            </label>
+            @if (target() === 'accepted') {
+              <label class="field">
+                Válido até
+                <input type="date" [min]="minDate" [max]="maxDate" [value]="expiresAt()" (input)="expiresAt.set(value($event))" />
+              </label>
+            }
+            <label class="field">
+              {{ target() === 'accepted' ? 'Justificativa' : 'Observação (opcional)' }}
+              <textarea rows="3" maxlength="1000" [value]="note()" (input)="note.set(value($event))"></textarea>
+              <small>Não escreva dados pessoais aqui.</small>
+            </label>
+            @if (statusError(); as e) {
+              <app-problem [error]="e" />
+            }
+            <button class="btn btn-primary" type="submit" [disabled]="!!statusInvalid() || saving()">Salvar</button>
+            @if (statusInvalid() && note()) {
+              <small class="error">{{ statusInvalid() }}</small>
+            }
+          </form>
+        }
+
+        <div class="card">
+          <h2>Histórico</h2>
+          <ol class="timeline">
+            @for (ev of details.value()?.timeline ?? []; track $index) {
+              <li>
+                <strong>{{ eventLabel[ev.type] ?? ev.type }}</strong>
+                @if (ev.status) {
+                  → {{ statusLabel[ev.status] }}
+                }
+                <small class="muted">{{ ev.occurredAt | date: 'dd/MM/yyyy HH:mm' }}</small>
+                @if (ev.note) {
+                  <p>{{ ev.note }}</p>
+                }
+              </li>
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  } @else {
+    <p class="loading">Carregando achado</p>
+  }
+</section>

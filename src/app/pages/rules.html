@@ -1,0 +1,158 @@
+<section class="page">
+  <div class="page-head">
+    <div>
+      <h1>Regras de PII</h1>
+      <p>
+        Regras do estágio <strong>pii</strong> (Semgrep CE, só regras próprias). <strong>Mapeamento</strong> encontra onde
+        o dado pessoal está — o valor em si (confirmado pelo dígito verificador) ou o campo/variável que o carrega.
+        <strong>Fluxo</strong> segue esse dado até uma saída insegura e bloqueia a publicação.
+      </p>
+    </div>
+  </div>
+
+  <div class="card table-wrap">
+    <div class="card-title">
+      <h2>Mapeamento</h2>
+      <small>desligar aqui afeta só o teste abaixo</small>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Teste</th><th>Regra</th><th>Alvo</th><th>Padrão</th><th>Validador</th><th>Severidade</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (r of catalog.rules(); track r.id) {
+          <tr [class.off]="!r.ativa">
+            <td>
+              <label class="switch">
+                <input type="checkbox" [checked]="r.ativa" (change)="catalog.toggle(r.id)" />
+                <span class="sr-only">Usar {{ r.nome }} no teste</span>
+              </label>
+            </td>
+            <td>
+              <strong>{{ r.nome }}</strong>
+              @if (r.personalizada) {
+                <span class="badge new">local</span>
+              }
+              <br /><small class="muted">{{ categoryLabel[r.categoria] }} · <span class="mono">{{ r.id }}</span></small>
+            </td>
+            <td>{{ r.alvo === 'valor' ? 'Valor' : 'Identificador' }}</td>
+            <td><code class="pattern">{{ r.padrao }}</code></td>
+            <td>{{ validatorLabel[r.validador] }}</td>
+            <td><app-severity [value]="r.severidade" /></td>
+            <td>
+              @if (r.personalizada) {
+                <button class="btn btn-sm btn-ghost" (click)="catalog.remove(r.id)">Remover</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card table-wrap">
+    <div class="card-title">
+      <h2>Fluxo (taint analysis)</h2>
+      <small>origem → propagação → destino</small>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Regra</th><th>Tipo de dado</th><th>Destino inseguro</th><th>Linguagens</th><th>Severidade</th></tr>
+      </thead>
+      <tbody>
+        @for (r of flowRules; track $index) {
+          <tr>
+            <td class="mono">{{ flowId(r) }}</td>
+            <td>{{ categoryLabel[r.categoria] }}</td>
+            <td>{{ sinkLabel[r.destino] }}</td>
+            <td><small>{{ r.linguagens }}</small></td>
+            <td><app-severity [value]="r.severidade" /></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p class="muted sanitizers">
+      Sanitizadores reconhecidos (o dado deixa de contar como vazamento):
+      @for (s of sanitizers; track s) {
+        <code>{{ s }}</code>
+      }
+    </p>
+  </div>
+
+  <div class="grid grid-2">
+    <form class="card form" [formGroup]="form" (ngSubmit)="save()">
+      <h2>Rascunho de regra</h2>
+      <p class="muted">Experimente um padrão novo no teste ao lado. Ele fica só nesta aba; para valer no motor, a regra
+        entra em <span class="mono">scanner/rules/pii/</span> da sentinela-api.</p>
+      <label class="field">
+        Nome
+        <input type="text" formControlName="nome" placeholder="Ex.: Número do NIS / PIS" />
+      </label>
+      <div class="row">
+        <label class="field">
+          Tipo de dado
+          <select formControlName="categoria">
+            @for (c of categories; track c[0]) {
+              <option [value]="c[0]">{{ c[1] }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          Alvo
+          <select formControlName="alvo">
+            <option value="valor">Valor (dado literal)</option>
+            <option value="identificador">Identificador (campo/variável)</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        Padrão (expressão regular)
+        <input type="text" class="mono" formControlName="padrao" placeholder="\b\d{3}\.\d{5}\.\d{2}-\d\b" />
+        @if (form.controls.padrao.errors?.['regex']; as err) {
+          @if (form.controls.padrao.dirty) {
+            <span class="error">{{ err }}</span>
+          }
+        }
+      </label>
+      <div class="row">
+        <label class="field">
+          Validador
+          <select formControlName="validador">
+            @for (v of validators; track v[0]) {
+              <option [value]="v[0]">{{ v[1] }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          Severidade
+          <select formControlName="severidade">
+            @for (s of severities; track s[0]) {
+              <option [value]="s[0]">{{ s[1] }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <button class="btn btn-primary" type="submit" [disabled]="!canSave()"><app-icon name="rules" /> Adicionar ao teste</button>
+    </form>
+
+    <div class="card tester">
+      <h2>Testar regras</h2>
+      <label class="field">
+        Trecho de código ou configuração
+        <small>Use só dados fictícios. O teste roda no navegador e nada é enviado.</small>
+        <textarea rows="12" [value]="sample()" (input)="onSample($event)" spellcheck="false" maxlength="20000"></textarea>
+      </label>
+      <h3>{{ matches().length }} ocorrência(s)</h3>
+      <ul>
+        @for (m of matches(); track $index) {
+          <li>
+            <span class="mono muted">L{{ m.linha }}</span>
+            <span>{{ m.regra.nome }}</span>
+            <code>{{ m.valorMascarado }}</code>
+            <app-severity [value]="m.regra.severidade" />
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</section>

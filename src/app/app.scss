@@ -1,0 +1,114 @@
+.skip {
+  position: absolute;
+  left: -999px;
+  &:focus {
+    left: 16px;
+    top: 8px;
+    z-index: 10;
+    background: var(--surface);
+    padding: 8px 12px;
+  }
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+nav {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  overflow-x: auto;
+  min-width: 0;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--text-2);
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--surface-2);
+    }
+    &.on {
+      color: var(--accent-ink);
+      background: var(--accent-soft);
+    }
+  }
+}
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.org select {
+  min-height: 36px;
+  padding: 4px 8px;
+  max-width: 160px;
+  font-size: 0.9rem;
+}
+.org-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-2);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notice {
+  margin: 0;
+  padding: 4px 16px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+@media (max-width: 1000px) {
+  .bar {
+    flex-wrap: wrap;
+  }
+  nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+  .tools {
+    margin-left: auto;
+  }
+}
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none;
+  }
+  nav {
+    flex-wrap: wrap;
+  }
+}

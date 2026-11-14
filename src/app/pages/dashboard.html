@@ -1,0 +1,190 @@
+<section class="page">
+  <div class="page-head">
+    <div>
+      <h1>Painel de Risco Cidadão</h1>
+      <p>
+        {{ org.current()?.name }} ·
+        {{ repositorio() ? 'repositório ' + repositorio() : 'todos os repositórios' }}
+      </p>
+    </div>
+    <label class="field repo-filter">
+      Repositório
+      <select (change)="filter($event)">
+        <option value="">Todos</option>
+        @for (n of repoNames(); track n) {
+          <option [value]="n" [selected]="n === repositorio()">{{ n }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (risk.error(); as e) {
+    <app-problem [error]="e" />
+  } @else if (risk.hasValue()) {
+    @let r = risk.value();
+    <div class="hero">
+      <div class="card gauge-card">
+        <div class="card-title">
+          <h2>Risco Cidadão</h2>
+          <small>0 a 100</small>
+        </div>
+        <app-risk-gauge [score]="r.score" [level]="r.level" />
+      </div>
+
+      <div class="card verdict" [class.blocked]="r.verdict === 'blocked'">
+        <app-icon [name]="r.verdict === 'blocked' ? 'lock' : 'check'" [size]="28" />
+        <div>
+          <h2>{{ r.verdict === 'blocked' ? 'Publicação bloqueada' : 'Publicação liberada' }}</h2>
+          @if (r.verdict === 'blocked') {
+            <p>
+              {{ r.openFlows }} fluxo(s) levam dados de cidadãos até saídas inseguras. O estágio
+              <strong>pii</strong> do pipeline falha e impede o deploy até a correção.
+            </p>
+          } @else {
+            <p>Nenhum dado pessoal chega a uma saída insegura nos repositórios analisados.</p>
+          }
+        </div>
+      </div>
+
+      <div class="kpis">
+        <a class="card kpi" routerLink="/achados" [queryParams]="{ kind: 'privacy', status: 'open' }">
+          <span class="label">Vazamentos abertos</span>
+          <strong>{{ r.openFlows }}</strong>
+          <span class="muted">fluxos até saídas inseguras</span>
+        </a>
+        <div class="card kpi">
+          <span class="label">Dados sensíveis mapeados</span>
+          <strong>{{ r.mappedData }}</strong>
+          <span class="muted">CPF, CNS, saúde, senhas…</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Alertas ao cidadão</span>
+          <strong>{{ r.citizenAlerts }}</strong>
+          <span class="muted">traduzidos pela IA</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">Repositórios</span>
+          <strong>{{ r.repositories }}</strong>
+          <span class="muted">no índice</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-title">
+          <h2>Evolução do risco</h2>
+          <small>por varredura com o estágio pii</small>
+        </div>
+        @if (trend().length) {
+          <app-trend-chart [points]="trend()" />
+        } @else {
+          <p class="empty">Ainda não há varreduras concluídas com o estágio pii.</p>
+        }
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <h2>Exposição por tipo de dado</h2>
+          <small>peso no índice</small>
+        </div>
+        @if (categories().length) {
+          <app-category-bars [bars]="categories()" />
+        } @else {
+          <p class="empty">Nenhum dado pessoal exposto.</p>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="loading">Calculando o Risco Cidadão</p>
+  }
+
+  <div>
+    <div class="section-head">
+      <h2><app-icon name="flow" /> Vazamentos que bloqueiam a publicação</h2>
+      <a routerLink="/achados" [queryParams]="{ kind: 'privacy' }">Todos os achados de privacidade</a>
+    </div>
+    <div class="grid">
+      @for (f of topFlows(); track f.id) {
+        <app-flow-card [finding]="f" [link]="true" />
+      } @empty {
+        @if (flowsLoaded()) {
+          <p class="empty card">Nenhum vazamento aberto.</p>
+        }
+      }
+    </div>
+  </div>
+
+  @if (summary.hasValue()) {
+    @let s = summary.value();
+    <div>
+      <div class="section-head">
+        <h2><app-icon name="shield" /> Segurança geral</h2>
+        @if (s.lastScanAt) {
+          <small class="muted">última varredura {{ s.lastScanAt | date: "dd/MM/yyyy 'às' HH:mm" }}</small>
+        }
+      </div>
+      <div class="kpis">
+        <a class="card kpi" routerLink="/achados" [queryParams]="{ status: 'open' }">
+          <span class="label">Achados abertos</span>
+          <strong>{{ s.openFindings }}</strong>
+          <span class="muted">todos os tipos</span>
+        </a>
+        <a class="card kpi" routerLink="/achados" [queryParams]="{ severity: 'critical', status: 'open' }">
+          <span class="label">Críticos</span>
+          <strong>{{ s.criticalFindings }}</strong>
+          <span class="muted">abertos</span>
+        </a>
+        <div class="card kpi">
+          <span class="label">Fora do prazo</span>
+          <strong>{{ s.overdueFindings }}</strong>
+          <span class="muted">SLA de correção vencido</span>
+        </div>
+        <div class="card kpi">
+          <span class="label">CVSS médio</span>
+          <strong>{{ s.averageCvss | number: '1.1-1' }}</strong>
+          <span class="muted">dependências com nota</span>
+        </div>
+      </div>
+      @if (byKind().length) {
+        <ul class="kinds">
+          @for (k of byKind(); track k.kind) {
+            <li><a class="badge" routerLink="/achados" [queryParams]="{ kind: k.kind }">{{ k.label }}: {{ k.count }}</a></li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  @if (weights(); as w) {
+    <details class="card how">
+      <summary><h2>Como o Risco Cidadão é calculado</h2></summary>
+      <p class="text-2">
+        Cada vazamento aberto soma <code>severidade × tipo de dado × exposição</code>. Dados sensíveis mapeados que
+        ainda não vazam somam <code>severidade × tipo de dado × {{ w.latentFactor }}</code>. Achados corrigidos, aceitos
+        ou falsos positivos não somam. O total vira o índice por
+        <code>100 × (1 − e<sup>−total/{{ w.saturation }}</sup>)</code>: os primeiros vazamentos pesam mais, e o índice
+        nunca passa de 100. Os pesos abaixo vêm da própria sentinela-api.
+      </p>
+      <div class="weights">
+        <table>
+          <caption>Severidade</caption>
+          @for (row of w.severity; track row.label) {
+            <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
+          }
+        </table>
+        <table>
+          <caption>Tipo de dado</caption>
+          @for (row of w.category; track row.label) {
+            <tr><td>{{ row.label }}</td><td>× {{ row.value }}</td></tr>
+          }
+        </table>
+        <table>
+          <caption>Exposição</caption>
+          @for (row of w.sink; track row.label) {
+            <tr><td>{{ row.label }}</td><td>× {{ row.value }}</td></tr>
+          }
+        </table>
+      </div>
+    </details>
+  }
+</section>
